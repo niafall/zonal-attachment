@@ -11,6 +11,11 @@
 ### Load Packages and Data ###
 ##############################
 
+## Session Information
+# R version 3.5.2 (2018-12-20)
+# Platform: x86_64-w64-mingw32/x64 (64-bit)
+# Running under: Windows >= 8 x64 (build 9200)
+
 library(RGeostats) # RGeostats_11.2.1
 library(spatstat)  # spatstat_1.55-1
 
@@ -72,7 +77,7 @@ plot(hadDb, zmin=0.001, pch.low=3, cex.low=0.25, las=1,
 # Calculate influence surface for sample points
 hadDb <- infl(hadDb, nodes=c(400,400), 
               origin=c(min(viapoly$lon),min(viapoly$lat)), 
-              extend=c(sum(abs(range(viapoly$lon))),
+              extend=c(abs(min(viapoly$lon)-max(viapoly$lon)),
                        max(viapoly$lat)-min(viapoly$lat)), 
               polygon=poly.data, plot=T, asp=1)
 
@@ -179,8 +184,7 @@ grid.simu.121 <- db.polygon(grid.simu.mean, poly.data)
 grid.simu.121 <- db.delete(grid.simu.121, "Simu.Y2*")
 rm(grid.simu.mean)
 
-plot(grid.simu.121, name="Raw.Simu.mean", pos.legend=0,
-     flag.proj=F, xlim=c(-11,-4))   #(-12,-2)
+plot(grid.simu.121, name="Raw.Simu.mean", pos.legend=0, flag.proj=F)
 
 # Backtransform all realisations
 system.time(ysim2012q1 <- anam.y2z(grid.simu, names="Simu*", anam=model.anam15))
@@ -189,7 +193,7 @@ rm(grid.simu)
 
 # Partition by EEZ and get distributions of total weights
 # for all of VIa
-ysim2012q1 <- db.polygon(ysim2012q1, poly.data)
+ysim2012q1 <- db.polygon(ysim2012q1, poly.data, flag.replace = T)
 vals <- ysim2012q1@items[ysim2012q1@items$Polygon==T,]
 vals[vals <= 0] <- 0
 via121 <- colSums(vals,na.rm = T)
@@ -217,9 +221,9 @@ boxplot(via121, eu121, uk121,
         border=c("#000000","#376ed3","#ec1336"))
 
 # UK
-uk5y <- uk121/via121
-mean(uk5y); quantile(uk5y, probs = c(0.025,0.5,0.975))
+uk5y <- 100*(uk121/via121)
+round(mean(uk5y)); round(quantile(uk5y, probs = c(0.025,0.5,0.975)))
 
 # EU
-eu5y <- eu121/via121
-mean(eu5y);quantile(eu5y,probs = c(0.025,0.5,0.975))
+eu5y <- 100*(eu121/via121)
+round(mean(eu5y));round(quantile(eu5y,probs = c(0.025,0.5,0.975)))
